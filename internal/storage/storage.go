@@ -3,13 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
-	"io"
 	"log"
-	"os"
-	"path/filepath"
 	"time"
 
-	"cloud.google.com/go/storage"
 	"github.com/cloudevents/sdk-go/v2/event"
 )
 
@@ -28,7 +24,7 @@ func ProcessFile(ctx context.Context, event event.Event) error {
 		return fmt.Errorf("failed to parse event data: %v", err)
 	}
 
-	log.Println("Attempting to process file: %v", data.Name)
+	log.Printf("Attempting to process file: %v", data.Name)
 
 	return nil
 }

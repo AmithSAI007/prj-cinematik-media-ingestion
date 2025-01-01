@@ -1,0 +1,23 @@
+name: CI-CD
+on:
+  push:
+    branches: ["main", "develop", "releases/**"]
+    paths: ["helm/**", ".github/workflows/**"]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: ["main", "develop", "releases/**"]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        default: "development"
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+permissions:
+  id-token: write
+  contents: read
