@@ -1,0 +1,42 @@
+name: Deploy Cloud Function
+
+on:
+  push:
+    branches: ["main", "develop"]
+  pull_request:
+    branches: ["main", "develop"]
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Please type "yes" to confirm deployment'
+        required: true
+        type: string
+
+jobs:
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-24.04
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go for Trivy
+        uses: actions/setup-go@v5
+        with:
+          go-version: ">=1.20.0"
+
+      - name: Install dependencies for scanning
+        run: |
+          go mod tidy
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "table"
+          severity: "CRITICAL,HIGH,MEDIUM"

@@ -34,7 +34,7 @@ func init() {
 // Returns:
 //   - error: nil if successful, error otherwise
 //
-// The function expects the following environment variables to be set:
+// Tme function expects the following environment variables to be set:
 //   - PROJECT_ID: The Google Cloud Project ID
 //   - TOPIC_ID: The Pub/Sub topic ID to publish messages to
 func pubsubMetadata(ctx context.Context, e event.Event) error {
