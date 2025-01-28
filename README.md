@@ -1,1 +1,0 @@
-# prj-cinematik-media-ingestion
