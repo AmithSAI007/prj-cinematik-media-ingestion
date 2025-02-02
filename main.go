@@ -40,6 +40,7 @@ func init() {
 func pubsubMetadata(ctx context.Context, e event.Event) error {
 	log.Printf("Event ID: %s", e.ID())
 	log.Printf("Event Type: %s", e.Type())
+	log.Printf("Event: %s", e)
 
 	var data transform.StorageObjectData
 	projectId := os.Getenv(envProjectID)
