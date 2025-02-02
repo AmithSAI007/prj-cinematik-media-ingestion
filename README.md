@@ -9,7 +9,7 @@ This repository contains a **Cloud Function** written in **Go** that listens for
 ```mermaid
 graph TD;
     A[User Uploads Video] -->|storage.finalized Event| B[Cloud Storage Bucket]
-    B -->|Triggers| C[Cloud Function (Go)]
+    B -->|Triggers| C[Cloud Function Go]
     C -->|Extracts Metadata| D[Pub/Sub Topic]
     D -->|Publishes Message| E[Downstream Applications]
     E -->|Processes Event| F[AI Analysis / DB Storage / Notifications]
