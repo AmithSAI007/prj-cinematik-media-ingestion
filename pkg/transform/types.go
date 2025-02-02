@@ -13,6 +13,8 @@ type StorageObjectData struct {
 	Metageneration string    `json:"metageneration,omitempty"`
 	TimeCreated    time.Time `json:"timecreated,omitempty"`
 	Updated        time.Time `json:"updated,omitempty"`
+	ContentType    string    `json:"contentType"`
+	Size           string    `json:"size"`
 }
 
 // TopicMessgaeData represents the metadata of a file related to a topic message.
@@ -23,6 +25,6 @@ type TopicMessgaeData struct {
 	FileName    string    `json:"filename,omitempty"`
 	FilePath    string    `json:"filepath,omitempty"`
 	ContentType string    `json:"contenttype,omitempty"`
-	Size        int64     `json:"size,omitempty"`
+	Size        string    `json:"size,omitempty"`
 	TimeCreated time.Time `json:"timecreated,omitempty"`
 }

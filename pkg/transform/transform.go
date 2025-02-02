@@ -13,8 +13,8 @@ func TransformToTopicMessageData(data StorageObjectData) TopicMessgaeData {
 		Bucket:      data.Bucket,
 		FileName:    data.Name,
 		FilePath:    fmt.Sprintf("gs://%s/%s", data.Bucket, data.Name),
-		ContentType: "",
-		Size:        0,
+		ContentType: data.ContentType,
+		Size:        data.Size,
 		TimeCreated: data.TimeCreated,
 	}
 }
