@@ -1,10 +1,19 @@
-# **PRJ CINEMATIK: Cloud Storage Event Processor with Pub/Sub Integration** 🚀
+# **PRJ CINEMATIK: Cloud Storage Event Processor with Pub/Sub Integration**
 
 ## **Overview**
 
 This repository contains a **Cloud Function** written in **Go** that listens for `storage.finalized` events from **Google Cloud Storage (GCS)**. When a user uploads a video file, the function extracts its metadata and publishes it to a **Google Cloud Pub/Sub topic**. This enables downstream applications to process the event asynchronously.
 
 ## **Architecture**
+
+```mermaid
+graph TD;
+    A[User Uploads Video] -->|Storage.finalized Event| B[Cloud Storage Bucket]
+    B -->|Triggers| C[Cloud Function (Go)]
+    C -->|Extracts Metadata| D[Pub/Sub Topic]
+    D -->|Publishes Message| E[Downstream Applications]
+    E -->|Processes Event| F[AI Analysis / DB Storage / Notifications]
+```
 
 1. **User Uploads a Video** → A user uploads a video file to a designated **Cloud Storage bucket**.
 2. **Cloud Function Trigger** → The **Cloud Function** is automatically triggered by a `storage.finalized` event.
