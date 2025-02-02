@@ -105,11 +105,12 @@ jobs:
           BUCKET_NAME=${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_BUCKET_NAME || secrets.DEVELOPMENT_BUCKET_NAME }}
           SERVICE_ACCOUNT=${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_GCP_SERVICE_ACCOUNT || secrets.DEVELOPMENT_GCP_SERVICE_ACCOUNT }}
 
-          gcloud functions deploy dummy \
+          gcloud functions deploy prj-cinematik-pubsub-metadata-function \
             --runtime go123 \
             --entry-point PubSubMetadata \
             --region $PROJECT_REGION \
             --gen2 \
+            --service-account="${SERVICE_ACCOUNT} \
             --trigger-event-filters="type=google.cloud.storage.object.v1.finalized" \
             --trigger-event-filters="bucket=$BUCKET_NAME" \
             --set-env-vars="$ENV_VARS"
