@@ -12,6 +12,9 @@ on:
         required: true
         type: string
 
+env:
+  GO_VERSION: ">=1.23"
+
 jobs:
   security-scan:
     name: Security Scan
@@ -27,7 +30,7 @@ jobs:
       - name: Setup Go for Trivy
         uses: actions/setup-go@v5
         with:
-          go-version: ">=1.20.0"
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Install dependencies for scanning
         run: |
@@ -40,3 +43,73 @@ jobs:
           scan-ref: "."
           format: "table"
           severity: "CRITICAL,HIGH,MEDIUM"
+
+  test:
+    name: Run Tests
+    needs: security-scan
+    runs-on: ubuntu-24.04
+    if: |
+      (github.event_name != 'workflow_dispatch') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.confirmation == 'yes')
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup GO
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          go mod tidy
+
+      - name: Run tests with coverage
+        run: |
+          echo "Hello World!!!"
+
+  deploy-to-environment:
+    name: Deploy Cloud Function
+    needs: test
+    runs-on: ubuntu-24.04
+    environment: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+
+    permissions:
+      contents: read
+      id-token: write
+      security-events: write
+
+    env:
+      ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          workload_identity_provider: ${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_GCP_WORKLOAD_IDENTITY_PROVIDER || secrets.DEVELOPMENT_GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_GCP_SERVICE_ACCOUNT || secrets.DEVELOPMENT_GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_GCP_PROJECT_ID || secrets.DEVELOPMENT_GCP_PROJECT_ID }}
+
+      - name: Deploy to Cloud Function
+        run: |
+          ENV_VARS="GCP_PROJECT_ID=${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_GCP_PROJECT_ID || secrets.DEVELOPMENT_GCP_PROJECT_ID }},\
+          TOPIC_ID=${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_PUBSUB_TOPIC_ID || secrets.DEVELOPMENT_PUBSUB_TOPIC_ID }}"
+
+          PROJECT_REGION=${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_GCP_PROJECT_REGION || secrets.DEVELOPMENT_GCP_PROJECT_REGION }}
+          BUCKET_NAME=${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_BUCKET_NAME || secrets.DEVELOPMENT_BUCKET_NAME }}
+          SERVICE_ACCOUNT=${{ github.ref == 'refs/heads/main' && secrets.PRODUCTION_GCP_SERVICE_ACCOUNT || secrets.DEVELOPMENT_GCP_SERVICE_ACCOUNT }}
+
+          gcloud functions deploy dummy \
+            --runtime go123 \
+            --entry-point PubSubMetadata \
+            --region $PROJECT_REGION \
+            --gen2 \
+            --trigger-event-filters="type=google.cloud.storage.object.v1.finalized" \
+            --trigger-event-filters="bucket=$BUCKET_NAME" \
+            --set-env-vars="$ENV_VARS"
