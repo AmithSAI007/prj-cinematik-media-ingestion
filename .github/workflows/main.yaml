@@ -110,7 +110,7 @@ jobs:
             --entry-point PubSubMetadata \
             --region $PROJECT_REGION \
             --gen2 \
-            --service-account="${SERVICE_ACCOUNT} \
+            --service-account="${SERVICE_ACCOUNT}" \
             --trigger-event-filters="type=google.cloud.storage.object.v1.finalized" \
             --trigger-event-filters="bucket=$BUCKET_NAME" \
             --set-env-vars="$ENV_VARS"
