@@ -3,6 +3,7 @@ package pubsub
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 )
@@ -32,5 +33,7 @@ func NewClient(ctx context.Context, projectId string) (*Client, error) {
 // Close gracefully shuts down the Pub/Sub client, freeing any resources.
 // Returns any error that occurs while closing the client.
 func (c *Client) Close() error {
+	_, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 	return c.Client.Close()
 }

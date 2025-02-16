@@ -3,7 +3,6 @@ package metadata
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/AmithSAI007/prj-cinematik-pubsub-metadata.git/internal/pubsub"
@@ -11,6 +10,7 @@ import (
 	"github.com/AmithSAI007/prj-cinematik-pubsub-metadata.git/pkg/transform"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
+	"go.uber.org/zap"
 )
 
 // Environment variable keys
@@ -38,8 +38,16 @@ func init() {
 //   - PROJECT_ID: The Google Cloud Project ID
 //   - TOPIC_ID: The Pub/Sub topic ID to publish messages to
 func pubsubMetadata(ctx context.Context, e event.Event) error {
-	log.Printf("Event ID: %s", e.ID())
-	log.Printf("Event Type: %s", e.Type())
+	log, err := zap.NewProduction()
+	if err != nil {
+		return fmt.Errorf("unable to initialize zap logging, %v", err)
+	}
+	defer log.Sync()
+
+	log.Info("Received CloutEvent",
+		zap.String("EventID", e.ID()),
+		zap.String("EventType", e.Type()),
+	)
 
 	var data transform.StorageObjectData
 	projectId := os.Getenv(envProjectID)
@@ -53,24 +61,32 @@ func pubsubMetadata(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("unable to process event data: %v", err)
 	}
 
-	log.Printf("Inititalizing Pub/Sub client, project id: %s", projectId)
+	log.Info("Inititalizing Pub/Sub client",
+		zap.String("Project ID", projectId),
+	)
 	client, err := pubsub.NewClient(ctx, projectId)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to create pub/sub client: %v", err)
 	}
 	defer client.Close()
 
-	log.Printf("Initializing publisher and preparing message")
-	publisher := publisher.NewPublisher(client.Client)
+	publisher := publisher.NewPublisher(client.Client, log)
 
-	msg := transform.TransformToTopicMessageData(data)
-
-	log.Printf("Attempting to publish message to topic: %s", topicId)
-	id, err := publisher.Publish(ctx, topicId, msg)
+	msg, err := transform.TransformToTopicMessageData(data)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to transform message: %v", err)
 	}
 
-	log.Printf("published message with id: %s", id)
+	log.Info("Attempting to publish message",
+		zap.String("topicId", topicId),
+	)
+	id, err := publisher.Publish(ctx, topicId, msg)
+	if err != nil {
+		return fmt.Errorf("failed to publish message: %v", err)
+	}
+
+	log.Info("Message published successfully",
+		zap.String("messageId", id),
+	)
 	return nil
 }

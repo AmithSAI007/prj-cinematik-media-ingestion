@@ -7,17 +7,20 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/AmithSAI007/prj-cinematik-pubsub-metadata.git/pkg/transform"
+	"go.uber.org/zap"
 )
 
 // Publisher is responsible for publishing messages to Google Cloud Pub/Sub topics.
 type Publisher struct {
 	client *pubsub.Client
+	log    *zap.Logger
 }
 
 // NewPublisher creates a new Publisher instance using an existing Pub/Sub client.
-func NewPublisher(client *pubsub.Client) *Publisher {
+func NewPublisher(client *pubsub.Client, log *zap.Logger) *Publisher {
 	return &Publisher{
 		client: client,
+		log:    log,
 	}
 }
 
@@ -58,6 +61,11 @@ func (p *Publisher) createMessage(msg transform.TopicMessgaeData) (*pubsub.Messa
 // It validates the topic, creates the message, and then sends it to the topic.
 // It returns the message ID if successful or an error if any step fails.
 func (p *Publisher) Publish(ctx context.Context, topicId string, msg transform.TopicMessgaeData) (string, error) {
+	p.log.Info("Attempting to publish message",
+		zap.String("topicId", topicId),
+		zap.String("bucket", msg.Bucket),
+		zap.String("file", msg.FileName),
+	)
 	if err := p.validateTopic(ctx, topicId); err != nil {
 		return "", err
 	}
