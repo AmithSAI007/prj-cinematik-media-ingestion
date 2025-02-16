@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/AmithSAI007/prj-cinematik-pubsub-metadata.git/pkg/transform"
