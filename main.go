@@ -15,7 +15,7 @@ import (
 
 // Environment variable keys
 const (
-	envProjectID = "PROJECT_ID"
+	envProjectID = "GCP_PROJECT_ID"
 	envTopicID   = "TOPIC_ID"
 )
 
